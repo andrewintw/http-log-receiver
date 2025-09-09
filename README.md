@@ -24,7 +24,7 @@ Install as a systemd service:
 
 ```
 sudo cp http_log_server.service /usr/lib/systemd/system/
-sudo systemctl status http_log_server.service
+sudo systemctl daemon-reload
 sudo systemctl start http_log_server.service
 sudo systemctl status http_log_server.service
 ● http_log_server.service - A Simple HTTP Log Server
