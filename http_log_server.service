@@ -1,0 +1,18 @@
+[Unit]
+Description=A Simple HTTP Log Server
+After=network.target
+
+[Service]
+Type=simple
+User=browan
+WorkingDirectory=/home/browan
+ExecStart=/usr/bin/python3 /home/browan/http_log_server.py
+Restart=always
+RestartSec=5
+
+# Output logs to systemd journal
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

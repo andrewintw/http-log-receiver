@@ -4,7 +4,7 @@
 
 A simple HTTP POST log server that records incoming messages to daily log files and provides a web interface to view, download, or delete logs.
 
-## 設定環境
+## Environment Setup
 
 ```
 sudo apt install -y python-is-python3 python3-pip
@@ -12,13 +12,34 @@ sudo mv /usr/lib/python3.12/EXTERNALLY-MANAGED /usr/lib/python3.12/EXTERNALLY-MA
 pip install flask
 ```
 
-## 啟用 log server
+## Running the Log Server
+
+Test locally:
 
 ```
 python http_log_server.py
 ```
 
-## 測試指令
+Install as a systemd service:
+
+```
+sudo cp http_log_server.service /usr/lib/systemd/system/
+sudo systemctl status http_log_server.service
+sudo systemctl start http_log_server.service
+sudo systemctl status http_log_server.service
+● http_log_server.service - A Simple HTTP Log Server
+     Loaded: loaded (/usr/lib/systemd/system/http_log_server.service; disabled; preset: enabled)
+     Active: active (running) since Tue 2025-09-09 19:21:54 CST; 1s ago
+   Main PID: 10564 (python3)
+      Tasks: 1 (limit: 4389)
+     Memory: 19.9M (peak: 20.1M)
+        CPU: 483ms
+     CGroup: /system.slice/http_log_server.service
+             └─10564 /usr/bin/python3 /home/browan/http_log_server.py
+```
+
+
+## Test Commands
 
 Client:
 
@@ -44,7 +65,9 @@ $ python http_log_server.py
 
 
 
-## 查看 logs
+## Viewing Logs
+
+Open in a browser:
 
 ```
 http://<ipaddr>:8080/logs
