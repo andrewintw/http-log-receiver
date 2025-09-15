@@ -6,7 +6,7 @@ import logging
 
 app = Flask(__name__)
 
-# Disable Flask/Werkzeug access log (GET /logs won't print)
+# Disable Flask/Werkzeug access log
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
@@ -41,7 +41,7 @@ def mfg_log():
 
 @app.route('/logs')
 def show_logs():
-    """Display logs with selectable files, download, delete, and refresh."""
+    """Display logs with selectable files, download, delete, and auto-refresh."""
     ensure_log_dir()
 
     # List all .log files in LOG_DIR, sorted descending
@@ -58,7 +58,7 @@ def show_logs():
         with open(filepath, "r", encoding="utf-8") as f:
             content = f.read()
 
-    # HTML template
+    # HTML template with AJAX refresh for <pre>
     html_template = """
     <html>
         <head>
@@ -80,7 +80,7 @@ def show_logs():
             </form>
 
             <!-- Download button -->
-            <form method="get" action="/logs/download" style="display:inline-block; margin-left:10px;">
+            <form method="get" action="/logs/download" target="_blank" style="display:inline-block; margin-left:10px;">
                 <input type="hidden" name="file" value="{{ selected_file }}">
                 <button type="submit">Download</button>
             </form>
@@ -91,11 +91,38 @@ def show_logs():
                 <button type="submit" onclick="return confirm('Are you sure you want to delete this log?');">Delete</button>
             </form>
 
-            <pre>{{ content }}</pre>
+            <!-- Log content -->
+            <pre id="log_content">{{ content }}</pre>
+
+            <!-- AJAX auto-refresh script -->
+            <script>
+                const selectedFile = "{{ selected_file }}";
+                function refreshLog() {
+                    fetch("/logs_content?file=" + encodeURIComponent(selectedFile))
+                        .then(response => response.text())
+                        .then(data => {
+                            document.getElementById("log_content").textContent = data;
+                        });
+                }
+                // Refresh every 5 seconds
+                setInterval(refreshLog, 5000);
+            </script>
         </body>
     </html>
     """
     return render_template_string(html_template, log_files=log_files, selected_file=selected_file, content=content)
+
+@app.route('/logs_content')
+def logs_content():
+    """Return the content of a selected log file (for AJAX refresh)."""
+    file_name = flask_request.args.get('file')
+    if not file_name or not file_name.endswith(".log"):
+        return "Invalid file.", 400
+    filepath = os.path.join(LOG_DIR, file_name)
+    if not os.path.exists(filepath):
+        return "File not found.", 404
+    with open(filepath, "r", encoding="utf-8") as f:
+        return f.read()
 
 @app.route('/logs/download')
 def download_log():
@@ -130,4 +157,3 @@ def delete_log():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
-
